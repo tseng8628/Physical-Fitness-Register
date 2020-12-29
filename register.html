@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+        <meta charset="UTF-8">
+        
+        <meta name="viewport" content="width=device-width, initial-scale=2.0">
+        <meta name="description" content="">
+
+        <title>Register</title>
+
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>
+        <script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
+
+
+        <!-- Bootstrap core CSS -->
+        <link href="bootstrap.css" rel="stylesheet">
+
+        <style>
+          .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+          }
+
+          @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+              font-size: 3.5rem;
+            }
+          }
+          
+              .Data-Content {
+        width: 100%; /* 表單寬度 */
+        line-height: 46px;
+    }
+
+    .Data-Title {
+        float: left;
+        width: 20%; /* Label寬度，視情況調整 */
+        margin-right: 10px;
+    }
+
+    .Data-Items {
+        float: left;
+        width: 25%;
+    }
+
+    .AlignRight {
+        text-align: right;
+    }
+            
+            
+        </style>
+    
+        <!-- Custom styles for this template -->
+        <link href="signin.css" rel="stylesheet">
+    
+        <script>
+            
+            var reconnectTimeout = 2000;
+            //var host="localhost";      
+            //var port=9001;
+            const TOPIC = "Topic/register";
+            const Feedback_Topic = "Feedback/UserID_State";
+            var client = false;
+            
+            // 用戶端成功連接 broker 時...
+            function onConnect(){
+                // 確認連接後，才能訂閱主題
+                console.log("onConnect then subscribe topic");
+                client.subscribe(Feedback_Topic);
+            }
+            
+            // 收到訊息時...
+            function onMessageArrived(message){
+                console.log("onMessageArrived:"+message.payloadString);
+                
+                var json = JSON.parse(message.payloadString);
+                console.log(json)
+
+                //$("#UserID").html(json['UserID']);
+                //var userid = document.getElementById("UserID").innerHTML;
+                
+                alert("註冊成功！!");
+                document.getElementById("mqtt_monitor").innerHTML = message.payloadString;
+            }
+            
+            // 發佈訊息
+            function publish_message() {
+                
+                var str = document.getElementById("number");
+                var str1 = document.getElementById("age");
+                var str2 = document.getElementById("weight");
+                var str3 = document.getElementById("genderbox");
+                
+                var str_value = str.value;
+                var str1_value = str1.value;
+                var str2_value = str2.value;
+                var str3_value = str3.value;
+                
+                var payload = str_value + str3_value + str1_value + str2_value;
+                
+                var message = new Paho.MQTT.Message(payload);
+                message.destinationName = TOPIC;
+                client.send(message);
+                input_text.value = '';
+            }
+            
+            function init() {
+                document.getElementById("mqtt_pub").addEventListener('click', publish_message);
+                // 建立 MQTT 用戶端實體. 你必須正確寫上你設置的埠號.
+                // ClientId 可以自行指定，提供 MQTT broker 認證用
+                client = new Paho.MQTT.Client("ws://192.168.43.20:9001/", "myClientId");
+
+                // 指定收到訊息時的處理動作
+                client.onMessageArrived = onMessageArrived;
+
+                // 連接 MQTT broker
+                client.connect({onSuccess:onConnect});
+            }
+
+            window.addEventListener('load', init, false);
+            //document.addEventListener('DOMContentLoaded', init, false);
+            
+        </script> 
+  </head>
+  
+<body class="text-center">
+    
+    <form class="form-signin">
+         
+ 
+
+
+          <div class="Data-Content">
+                  <!--<div class="Data-Title">
+                    <div class="AlignRight">
+                       <label for="txt_name">工號：</label><br />
+            <label for="txt_birth">年齡：</label><br />
+            <label for="txt_phone">體重：</label><br />
+            <label for="txt_id">性別：</label><br />
+                    </div>
+                </div>-->        
+          
+          <!---<input type="text" class="form-control" id="mqtt_text" name = "message" maxlength="6" onkeyup="value=value.replace(/[^\d]/g,'')" placeholder="UserID(6位數數字)" style="width: 300px;"/>-->
+          
+           <div class="Data-Items">
+        
+          <input type="text" class="form-control" name="number" id="number" maxlength="6" onKeypress="if (event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;" style="width:300px" placeholder="工號  EX：111111">
+          
+          <h1> </h1>
+          
+          
+            <input type="age" id="age" maxLength="2" class="form-control" onKeypress="if (event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;" style="width:300px" placeholder="年紀  EX：60">
+          
+          <h1> </h1>
+          
+          
+           <input type="weight" id="weight" maxLength="2" class="form-control" onKeypress="if (event.keyCode < 48 || event.keyCode > 57) event.returnValue = false;" style="width:300px" placeholder="體重  EX：77">
+           
+           <h1> </h1>
+           
+            <div style="width:300px">
+                <select id="genderbox">
+        　            <option value="men">男</option>
+        　            <option value="wom">女</option>
+                </select>
+            </div>
+              </div>
+              </div>
+            
+            <h1> </h1>
+        
+           <button class="btn btn-lg btn-primary btn-block" id="mqtt_pub">Register</button>
+      
+           
+          <!---<div id="mqtt_monitor"></div>-->
+            
+          
+
+    </form>
+    
+</body>
+
+</html>
